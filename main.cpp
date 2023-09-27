@@ -161,7 +161,7 @@ struct generation_node
         
         for (int i = 0; i < t; i++)
 		{
-			string binary_str(old_x_bin[i], bits); // Cadena binaria a partir del array de caracteres
+			string binary_str(new_x_bin[i], bits); // Cadena binaria a partir del array de caracteres
 			x[i] = stoi(binary_str, nullptr, 2); // Convertir cadena binaria a entero en base 2
 
 			string binary_str2(new_y_bin[i], bits2); // Cadena binaria a partir del array de caracteres
@@ -269,7 +269,7 @@ struct generation_node
             int a = x[i];
             int b = y[i];
             //function_x[i] = pow(a, 2) + 3*a; // x**2 + 3x
-            function[i] = a + b;
+            function[i] = pow(a, 2) + 2*a*b + pow(b,2); // x**2 + 3x
             sumation += function[i];
             
 
