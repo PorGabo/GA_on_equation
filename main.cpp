@@ -5,10 +5,11 @@
 #include <ctime>
 #include <cmath>
 #include <thread>
+#include <random>
 
 using namespace std;
 
-const int t = 4; //debe ser par
+const int t = 6; //debe ser par
 const int bits = 8;
 
 struct generation_node
@@ -34,71 +35,39 @@ struct generation_node
 
     generation_node()
     {
-        srand(static_cast<unsigned>(time(nullptr)));
-
-        for (int i = 0; i < t; i++) {
-            population[i] = rand() % 256;
-            selected[i] = 0.0; // Inicializa selected con 0
-            spected[i] = 0.0; // Inicializa spected con 0
-            actual[i] = 0; // Inicializa actual con 0
-        }
-
-        sumation = 0.0;
-        maximum = function[0]; // Inicializar el máximo con el primer valor de la función
-
-        for (int i = 0; i < t; i++) {
-            // EQUATION HERE!
-            function[i] = pow(population[i], 2); // x**2
-            sumation += function[i];
-
-            if (function[i] > maximum)
-                maximum = function[i];
-        }
-
-        average = sumation / t;
-
-        thread threads[t];
-        for (int i = 0; i < t; i++) {
-            threads[i] = thread(&generation_node::calculate, this, i);
-        }
-        for (int i = 0; i < t; i++) {
-            threads[i].join();
-        }
-
+        process();
         adjust_actual();
         calculate_next_population();
     }
 
-    // 2+ generations
+
     generation_node(int tmp_population[t])
     {
         for (int i = 0; i < t; i++)
         {
             for (int j = 0; j < bits; j++)
-            {
                 old_binary_values[i][j] = ((tmp_population[i] >> j) & 1) ? '1' : '0';
-            }
 
-            // Inicializa 'partner' y 'crossing_position'
-            partner[i] = -1; // Inicialmente no tiene pareja
-            crossing_position[i] = -1; // Posición de cruce inicial
+            partner[i] = -1; 
+            crossing_position[i] = -1; 
         }
 
-        // Inicializa la semilla de generación de números aleatorios
-        srand(static_cast<unsigned>(time(nullptr)));
 
-        // ...
+        //parejas de cruzamiento y posiciones de cruce
+        // Parejas de cruzamiento y posiciones de cruce usando random
+        random_device rd;
+        mt19937 gen(rd());
+        uniform_int_distribution<int> dist(1, 6);
 
-        // Asigna parejas de cruzamiento y posiciones de cruce
         for (int i = 0; i < t; i += 2)
         {
             partner[i] = (i + 1) % t;
             partner[(i + 1) % t] = i;
 
-            // Genera una posición de cruce aleatoria entre 1 y 7
-            crossing_position[i] = rand() % 6 + 1; // Valores del 1 al 7
+            crossing_position[i] = dist(gen);
             crossing_position[(i + 1) % t] = crossing_position[i];
         }
+
 
         int checked[t];
         for (int i = 0; i < t; i++)
@@ -114,7 +83,7 @@ struct generation_node
 
             int partnerIndex = partner[i];
 
-            // Copia los valores de old_binary_values a new_binary_values
+            //copia los valores de old_binary_values a new_binary_values
             for (int j = 0; j < bits; j++)
             {
                 new_binary_values[i][j] = old_binary_values[i][j];
@@ -128,34 +97,52 @@ struct generation_node
                 new_binary_values[partnerIndex][j] = temp;
             }
         }
+        
+        for (int i = 0; i < t; i++) 
+        {
+		    string binary_str(new_binary_values[i], bits); //cadena binaria a partir del array de caract
+		    population[i] = stoi(binary_str, nullptr, 2); //cadena binaria a entero
+    	}
+        
 
-        print_binary_and_partners();
-        // Resto del código...
+        
+		process();
+        adjust_actual();
+        calculate_next_population();
+		
     }
 
-    void print_binary_and_partners()
+    void print_generation()
     {
-        cout << "---------------------------------------------------------------------" << endl;
-        cout << "|  Old Popul. | Partner | Pos |    New Pop   |" << endl;
-        cout << "---------------------------------------------------------------------" << endl;
+        cout << "---------------------------------------------------------------------------------------------------------------------------------" << endl;
+        cout << "|  Old Popul. | Partner | Pos |  New Pop  | Population |  Function  |   Selected   |  Spected  |  Actual  |  Next Pop  |" << endl;
+        cout << "---------------------------------------------------------------------------------------------------------------------------------" << endl;
 
         for (int i = 0; i < t; i++)
         {
             cout << "|  ";
-            for (int j = 0; j < bits; j++) {
+            for (int j = 0; j < bits; j++)
                 cout << old_binary_values[i][j];
-            }
             cout << "   |";
             cout << "    " << partner[i] +1<< "    |";
             cout << "  " << crossing_position[i] << "  |";
-            cout << "    ";
-            for (int j = 0; j < bits; j++) {
+            cout << " ";
+            for (int j = 0; j < bits; j++)
                 cout << new_binary_values[i][j];
-            }
-            cout << "    |\n";
+            cout << "  |    " << population[i];
+            cout << "     |    " << function[i];
+            cout << "    |   " << selected[i];
+            cout << "   | " << spected[i];
+			cout << " |     " << actual[i];
+			cout << "     | " << next_population[i];
+            
+            cout << "  |\n";
 
-            cout << "--------------------------------------------------------" << endl;
+            cout << "-------------------------------------------------------------------------------------------------------------------------" << endl;
         }
+        cout << "Sumation: " << sumation << "\n";
+        cout << "Maximum: " << maximum << "\n";
+        cout << "Average: " << average << "\n\n";
     }
 
     void calculate(int index)
@@ -166,21 +153,39 @@ struct generation_node
         actual[index] = static_cast<int>(round(spected[index]));
     }
 
-    void print_generation()
+    void process()
     {
-        cout << "--------------------------------------------------------------------------------------" << endl;
-        cout << "|  Population  |  Function  |    Selected    |    Spected    |  Actual  |  Next Pop  |" << endl;
-        cout << "--------------------------------------------------------------------------------------" << endl;
+    	for (int i = 0; i < t; i++)
+    	{
+            population[i] = rand() % 256;
+            selected[i] = 0.0;
+            spected[i] = 0.0;
+            actual[i] = 0;
+        }
+
+        sumation = 0.0;
+        maximum = function[0]; 
 
         for (int i = 0; i < t; i++) 
         {
-            cout << "|      " << population[i] << "      |    " << function[i] << "    |     ";
-            cout << selected[i] << "    |     " << spected[i] << "    |     " << actual[i] << "  |  "<< next_population[i]<< endl;
-            cout << "-----------------------------------------------------" << endl;
+            // EQUATION HERE!
+            int x = population[i];
+            function[i] = pow(x, 2) + 3*x; // x**2 + 3x
+            sumation += function[i];
+
+            if (function[i] > maximum)
+                maximum = function[i];
         }
-        cout << "Sumation: " << sumation << "\n";
-        cout << "Maximum: " << maximum << "\n";
-        cout << "Average: " << average << "\n\n\n";
+
+        average = sumation / t;
+
+        thread threads[t];
+        for (int i = 0; i < t; i++) {
+            threads[i] = thread(&generation_node::calculate, this, i);
+        }
+        for (int i = 0; i < t; i++) {
+            threads[i].join();
+        }
     }
 
     void calculate_next_population()
@@ -232,16 +237,47 @@ struct generation_node
 
 struct queue_of_life
 {
+    vector<generation_node> generations;
+
+    queue_of_life(int num_generations)
+	{
+		// Crear la primera generación y agregarla a la cola
+		generations.push_back(generation_node());
+
+		// Crear generaciones adicionales utilizando next_population del nodo anterior
+		for (int i = 1; i < num_generations; i++)
+		{
+		    generations.push_back(generation_node(generations[i - 1].next_population));
+		}
+	}
+
 };
+
 
 int main()
 {
-    generation_node node;
-    node.print_generation();
+    srand(static_cast<unsigned>(time(nullptr))); // Establecer la semilla de generación de números aleatorios una vez
 
-    cout << "\n\n";
+    int num_generations = 5; // Cambia esto al número deseado de generaciones
+    queue_of_life queue(num_generations);
 
-    generation_node node2(node.next_population); // Utiliza node.next_population como argumento
+    // Ahora, puedes acceder a cada generación en queue.generations
+    for (int i = 0; i < num_generations; i++)
+    {
+        cout << "Generation " << i + 1 << ":\n";
+        queue.generations[i].print_generation();
+        cout << "\n";
+
+        // Generar la siguiente generación basada en next_population de la generación anterior
+        if (i < num_generations - 1)
+        {
+            queue.generations[i + 1] = generation_node(queue.generations[i].next_population);
+        }
+    }
 
     return 0;
 }
+
+
+
+
