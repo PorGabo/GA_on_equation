@@ -12,9 +12,9 @@
 using namespace std;
 mutex mtx;
 
-const int t = 10; //debe ser par para el cruce
+const int t = 10; //par
 const int bits = 8;
-const int gens = 1000;
+const int gens = 10000;
 
 struct generation_node
 {
@@ -23,6 +23,7 @@ struct generation_node
     int crossing_position[t];
     char new_binary_values[t][bits];
     int population[t];
+    int population2[t];
 
     double function[t];
     double selected[t];
@@ -96,13 +97,10 @@ struct generation_node
 
         thread threads[t];
 		for (int i = 0; i < t; i++)
-		{
 			threads[i] = thread(&generation_node::perform_crossover, this, i);
-		}
 
-		for (int i = 0; i < t; i++) {
+		for (int i = 0; i < t; i++)
 			threads[i].join();
-		}
         
         for (int i = 0; i < t; i++) 
         {
@@ -120,9 +118,9 @@ struct generation_node
 
     void print_generation()
     {
-        cout << "---------------------------------------------------------------------------------------------------------------------------------" << endl;
+        cout << "------------------------------------------------------------------------------------------------------------------------" << endl;
         cout << "|  Old Popul. | Partner | Pos |  New Pop  | Population |  Function  |   Selected   |  Spected  |  Actual  |  Next Pop  |" << endl;
-        cout << "---------------------------------------------------------------------------------------------------------------------------------" << endl;
+        cout << "------------------------------------------------------------------------------------------------------------------------" << endl;
 
         for (int i = 0; i < t; i++)
         {
@@ -140,11 +138,11 @@ struct generation_node
             cout << "    |   " << selected[i];
             cout << "   | " << spected[i];
 			cout << " |     " << actual[i];
-			cout << "     | " << next_population[i];
+			cout << "     |   " << next_population[i];
             
-            cout << "  |\n";
+            cout << "    |\n";
 
-            cout << "-------------------------------------------------------------------------------------------------------------------------" << endl;
+            cout << "------------------------------------------------------------------------------------------------------------------------" << endl;
         }
         cout << "Sumation: " << sumation << "\n";
         cout << "Maximum: " << maximum << "\n";
@@ -186,12 +184,10 @@ struct generation_node
         average = sumation / t;
 
         thread threads[t];
-        for (int i = 0; i < t; i++) {
+        for (int i = 0; i < t; i++)
             threads[i] = thread(&generation_node::calculate, this, i);
-        }
-        for (int i = 0; i < t; i++) {
+        for (int i = 0; i < t; i++)
             threads[i].join();
-        }
     }
 
 	void perform_crossover(int i)
@@ -239,9 +235,7 @@ struct generation_node
         double current_sum = 0.0;
 
         for (int i = 0; i < t; i++)
-        {
             current_sum += actual[i];
-        }
 
         if (current_sum == t)
             return; // No es necesario ajustar nada
@@ -277,27 +271,21 @@ struct queue_of_life
 {
     vector<generation_node> generations;
 
-    queue_of_life(int num_generations)
-{
-    // Create the first generation and add it to the queue
-    generations.push_back(generation_node());
+    queue_of_life(int gens)
+	{
+		generations.push_back(generation_node());
 
-    // Create additional generations using next_population of the previous node
-    for (int i = 1; i < num_generations; i++)
-    {
-        generations.push_back(generation_node(generations[i - 1].next_population));
-    }
-}
+		for (int i = 1; i < gens; i++)
+		    generations.push_back(generation_node(generations[i - 1].next_population));
+	}
 };
 
 
 int main()
 {
-    int num_generations = gens; // Change this to the desired number of generations
-    queue_of_life queue(num_generations);
+    queue_of_life queue(gens);
 
-    // Now, you can access each generation in queue.generations
-    for (int i = 0; i < num_generations; i++)
+    for (int i = 0; i < gens; i++)
     {
         cout << "Generation " << i + 1 << ":\n";
         queue.generations[i].print_generation();
