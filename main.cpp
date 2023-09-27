@@ -7,11 +7,14 @@
 #include <thread>
 #include <random>
 #include <algorithm>
+#include <mutex>
 
 using namespace std;
+mutex mtx;
 
-const int t = 6; //debe ser par
+const int t = 10; //debe ser par para el cruce
 const int bits = 8;
+const int gens = 1000;
 
 struct generation_node
 {
@@ -32,7 +35,7 @@ struct generation_node
 
     int next_population[t]; //
 
-    generation_node* next = nullptr;
+    int checked[t];
 
     generation_node()
 	{
@@ -86,34 +89,20 @@ struct generation_node
 		    crossing_position[indices[(i + 1) % t]] = crossing_position[indices[i]];
 		}
 
-        int checked[t];
+
+        
         for (int i = 0; i < t; i++)
             checked[i] = 0;
 
-        for (int i = 0; i < t; i++)
-        {
-            if (checked[i] || checked[partner[i]])
-                continue;
+        thread threads[t];
+		for (int i = 0; i < t; i++)
+		{
+			threads[i] = thread(&generation_node::perform_crossover, this, i);
+		}
 
-            checked[i] = 1;
-            checked[partner[i]] = 1;
-
-            int partnerIndex = partner[i];
-
-            //copia los valores de old_binary_values a new_binary_values
-            for (int j = 0; j < bits; j++)
-            {
-                new_binary_values[i][j] = old_binary_values[i][j];
-                new_binary_values[partnerIndex][j] = old_binary_values[partnerIndex][j];
-            }
-
-            for (int j = crossing_position[i]; j < bits; j++)
-            {
-                char temp = new_binary_values[i][j];
-                new_binary_values[i][j] = new_binary_values[partnerIndex][j];
-                new_binary_values[partnerIndex][j] = temp;
-            }
-        }
+		for (int i = 0; i < t; i++) {
+			threads[i].join();
+		}
         
         for (int i = 0; i < t; i++) 
         {
@@ -205,6 +194,38 @@ struct generation_node
         }
     }
 
+	void perform_crossover(int i)
+	{
+		mtx.lock();////// no checked problems
+		if (checked[i] || checked[partner[i]])
+		{
+		    mtx.unlock();
+		    return;
+		}
+
+		checked[i] = 1;
+		checked[partner[i]] = 1;
+		mtx.unlock();//////
+
+		int partnerIndex = partner[i];
+
+		// Copy the values from old_binary_values to new_binary_values
+		for (int j = 0; j < bits; j++)
+		{
+		    new_binary_values[i][j] = old_binary_values[i][j];
+		    new_binary_values[partnerIndex][j] = old_binary_values[partnerIndex][j];
+		}
+
+		// Perform crossover
+		for (int j = crossing_position[i]; j < bits; j++)
+		{
+		    char temp = new_binary_values[i][j];
+		    new_binary_values[i][j] = new_binary_values[partnerIndex][j];
+		    new_binary_values[partnerIndex][j] = temp;
+		}
+	}
+
+
     void calculate_next_population()
     {
         int next_index = 0;
@@ -257,39 +278,30 @@ struct queue_of_life
     vector<generation_node> generations;
 
     queue_of_life(int num_generations)
-	{
-		// Crear la primera generación y agregarla a la cola
-		generations.push_back(generation_node());
+{
+    // Create the first generation and add it to the queue
+    generations.push_back(generation_node());
 
-		// Crear generaciones adicionales utilizando next_population del nodo anterior
-		for (int i = 1; i < num_generations; i++)
-		{
-		    generations.push_back(generation_node(generations[i - 1].next_population));
-		}
-	}
-
+    // Create additional generations using next_population of the previous node
+    for (int i = 1; i < num_generations; i++)
+    {
+        generations.push_back(generation_node(generations[i - 1].next_population));
+    }
+}
 };
 
 
 int main()
 {
-    
-
-    int num_generations = 5; // Cambia esto al número deseado de generaciones
+    int num_generations = gens; // Change this to the desired number of generations
     queue_of_life queue(num_generations);
 
-    // Ahora, puedes acceder a cada generación en queue.generations
+    // Now, you can access each generation in queue.generations
     for (int i = 0; i < num_generations; i++)
     {
         cout << "Generation " << i + 1 << ":\n";
         queue.generations[i].print_generation();
         cout << "\n";
-
-        // Generar la siguiente generación basada en next_population de la generación anterior
-        if (i < num_generations - 1)
-        {
-            queue.generations[i + 1] = generation_node(queue.generations[i].next_population);
-        }
     }
 
     return 0;
