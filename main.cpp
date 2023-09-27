@@ -6,6 +6,7 @@
 #include <cmath>
 #include <thread>
 #include <random>
+#include <algorithm>
 
 using namespace std;
 
@@ -34,11 +35,26 @@ struct generation_node
     generation_node* next = nullptr;
 
     generation_node()
-    {
-        process();
-        adjust_actual();
-        calculate_next_population();
-    }
+	{
+		random_device rd;
+		mt19937 gen(rd());
+
+		
+		for (int i = 0; i < t; i++)
+		{
+		    partner[i] = -1; 
+		    crossing_position[i] = 0; 
+		    for (int j = 0; j < bits; j++)
+		    {
+		        old_binary_values[i][j] = '0';
+		        new_binary_values[i][j] = '0';
+		    }
+		}
+
+		process();
+		adjust_actual();
+		calculate_next_population();
+	}
 
 
     generation_node(int tmp_population[t])
@@ -53,21 +69,22 @@ struct generation_node
         }
 
 
-        //parejas de cruzamiento y posiciones de cruce
-        // Parejas de cruzamiento y posiciones de cruce usando random
-        random_device rd;
-        mt19937 gen(rd());
-        uniform_int_distribution<int> dist(1, 6);
+		random_device rd;
+		mt19937 gen(rd());
+		uniform_int_distribution<int> dist(1, 6);
 
-        for (int i = 0; i < t; i += 2)
-        {
-            partner[i] = (i + 1) % t;
-            partner[(i + 1) % t] = i;
+		vector<int> indices(t);
+		iota(indices.begin(), indices.end(), 0);
+		shuffle(indices.begin(), indices.end(), gen);
 
-            crossing_position[i] = dist(gen);
-            crossing_position[(i + 1) % t] = crossing_position[i];
-        }
+		for (int i = 0; i < t; i += 2)
+		{
+		    partner[indices[i]] = indices[(i + 1) % t];
+		    partner[indices[(i + 1) % t]] = indices[i];
 
+		    crossing_position[indices[i]] = dist(gen);
+		    crossing_position[indices[(i + 1) % t]] = crossing_position[indices[i]];
+		}
 
         int checked[t];
         for (int i = 0; i < t; i++)
@@ -256,7 +273,7 @@ struct queue_of_life
 
 int main()
 {
-    srand(static_cast<unsigned>(time(nullptr))); // Establecer la semilla de generación de números aleatorios una vez
+    
 
     int num_generations = 5; // Cambia esto al número deseado de generaciones
     queue_of_life queue(num_generations);
