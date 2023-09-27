@@ -14,29 +14,29 @@ mutex mtx;
 
 const int t = 10; //par
 const int bits = 8;
-const int gens = 10000;
+const int gens = 20000;
 
 struct generation_node
 {
-    char old_binary_values[t][bits];
-    int partner[t];
-    int crossing_position[t];
-    char new_binary_values[t][bits];
-    int population[t];
-    int population2[t];
+    char old_x_bin[t][bits];
+    int partner_x[t];
+    int cross_pos_x[t];
+    char new_x_bin[t][bits];
+    int x[t];
+    int y[t];
 
-    double function[t];
-    double selected[t];
-    double spected[t];
-    double actual[t];
+    double function_x[t];
+    double selected_x[t];
+    double spected_x[t];
+    double actual_x[t];
 
-    double sumation;
-    double average;
-    double maximum;
+    double sumation_x;
+    double average_x;
+    double maximum_x;
 
-    int next_population[t]; //
+    int next_population_x[t]; //
 
-    int checked[t];
+    int checked_x[t];
 
     generation_node()
 	{
@@ -46,12 +46,12 @@ struct generation_node
 		
 		for (int i = 0; i < t; i++)
 		{
-		    partner[i] = -1; 
-		    crossing_position[i] = 0; 
+		    partner_x[i] = -1; 
+		    cross_pos_x[i] = 0; 
 		    for (int j = 0; j < bits; j++)
 		    {
-		        old_binary_values[i][j] = '0';
-		        new_binary_values[i][j] = '0';
+		        old_x_bin[i][j] = '0';
+		        new_x_bin[i][j] = '0';
 		    }
 		}
 
@@ -66,10 +66,10 @@ struct generation_node
         for (int i = 0; i < t; i++)
         {
             for (int j = 0; j < bits; j++)
-                old_binary_values[i][j] = ((tmp_population[i] >> j) & 1) ? '1' : '0';
+                old_x_bin[i][j] = ((tmp_population[i] >> j) & 1) ? '1' : '0';
 
-            partner[i] = -1; 
-            crossing_position[i] = -1; 
+            partner_x[i] = -1; 
+            cross_pos_x[i] = -1; 
         }
 
 
@@ -83,17 +83,17 @@ struct generation_node
 
 		for (int i = 0; i < t; i += 2)
 		{
-		    partner[indices[i]] = indices[(i + 1) % t];
-		    partner[indices[(i + 1) % t]] = indices[i];
+		    partner_x[indices[i]] = indices[(i + 1) % t];
+		    partner_x[indices[(i + 1) % t]] = indices[i];
 
-		    crossing_position[indices[i]] = dist(gen);
-		    crossing_position[indices[(i + 1) % t]] = crossing_position[indices[i]];
+		    cross_pos_x[indices[i]] = dist(gen);
+		    cross_pos_x[indices[(i + 1) % t]] = cross_pos_x[indices[i]];
 		}
 
 
         
         for (int i = 0; i < t; i++)
-            checked[i] = 0;
+            checked_x[i] = 0;
 
         thread threads[t];
 		for (int i = 0; i < t; i++)
@@ -104,8 +104,8 @@ struct generation_node
         
         for (int i = 0; i < t; i++) 
         {
-		    string binary_str(new_binary_values[i], bits); //cadena binaria a partir del array de caract
-		    population[i] = stoi(binary_str, nullptr, 2); //cadena binaria a entero
+		    string binary_str(new_x_bin[i], bits); //cadena binaria a partir del array de caract
+		    x[i] = stoi(binary_str, nullptr, 2); //cadena binaria a entero
     	}
         
 
@@ -119,69 +119,69 @@ struct generation_node
     void print_generation()
     {
         cout << "------------------------------------------------------------------------------------------------------------------------" << endl;
-        cout << "|  Old Popul. | Partner | Pos |  New Pop  | Population |  Function  |   Selected   |  Spected  |  Actual  |  Next Pop  |" << endl;
+        cout << "|  Old Popul. | partner_x | Pos |  New Pop  |  x  |  function_x  |   Selected   |  Spected  |  Actual  |  Next Pop  |" << endl;
         cout << "------------------------------------------------------------------------------------------------------------------------" << endl;
 
         for (int i = 0; i < t; i++)
         {
             cout << "|  ";
             for (int j = 0; j < bits; j++)
-                cout << old_binary_values[i][j];
+                cout << old_x_bin[i][j];
             cout << "   |";
-            cout << "    " << partner[i] +1<< "    |";
-            cout << "  " << crossing_position[i] << "  |";
+            cout << "    " << partner_x[i] +1<< "    |";
+            cout << "  " << cross_pos_x[i] << "  |";
             cout << " ";
             for (int j = 0; j < bits; j++)
-                cout << new_binary_values[i][j];
-            cout << "  |    " << population[i];
-            cout << "     |    " << function[i];
-            cout << "    |   " << selected[i];
-            cout << "   | " << spected[i];
-			cout << " |     " << actual[i];
-			cout << "     |   " << next_population[i];
+                cout << new_x_bin[i][j];
+            cout << "  |    " << x[i];
+            cout << "     |    " << function_x[i];
+            cout << "    |   " << selected_x[i];
+            cout << "   | " << spected_x[i];
+			cout << " |     " << actual_x[i];
+			cout << "     |   " << next_population_x[i];
             
             cout << "    |\n";
 
             cout << "------------------------------------------------------------------------------------------------------------------------" << endl;
         }
-        cout << "Sumation: " << sumation << "\n";
-        cout << "Maximum: " << maximum << "\n";
-        cout << "Average: " << average << "\n\n";
+        cout << "sumation_x: " << sumation_x << "\n";
+        cout << "maximum_x: " << maximum_x << "\n";
+        cout << "average_x: " << average_x << "\n\n";
     }
 
     void calculate(int index)
     {
         // Calcular selected, spected y actual
-        selected[index] = function[index] / sumation;
-        spected[index] = function[index] / average;
-        actual[index] = static_cast<int>(round(spected[index]));
+        selected_x[index] = function_x[index] / sumation_x;
+        spected_x[index] = function_x[index] / average_x;
+        actual_x[index] = static_cast<int>(round(spected_x[index]));
     }
 
     void process()
     {
     	for (int i = 0; i < t; i++)
     	{
-            population[i] = rand() % 256;
-            selected[i] = 0.0;
-            spected[i] = 0.0;
-            actual[i] = 0;
+            x[i] = rand() % 256;
+            selected_x[i] = 0.0;
+            spected_x[i] = 0.0;
+            actual_x[i] = 0;
         }
 
-        sumation = 0.0;
-        maximum = function[0]; 
+        sumation_x = 0.0;
+        maximum_x = function_x[0]; 
 
         for (int i = 0; i < t; i++) 
         {
             // EQUATION HERE!
-            int x = population[i];
-            function[i] = pow(x, 2) + 3*x; // x**2 + 3x
-            sumation += function[i];
+            int a = x[i];
+            function_x[i] = pow(a, 2) + 3*a; // x**2 + 3x
+            sumation_x += function_x[i];
 
-            if (function[i] > maximum)
-                maximum = function[i];
+            if (function_x[i] > maximum_x)
+                maximum_x = function_x[i];
         }
 
-        average = sumation / t;
+        average_x = sumation_x / t;
 
         thread threads[t];
         for (int i = 0; i < t; i++)
@@ -192,32 +192,32 @@ struct generation_node
 
 	void perform_crossover(int i)
 	{
-		mtx.lock();////// no checked problems
-		if (checked[i] || checked[partner[i]])
+		mtx.lock();////// no checked_x problems
+		if (checked_x[i] || checked_x[partner_x[i]])
 		{
 		    mtx.unlock();
 		    return;
 		}
 
-		checked[i] = 1;
-		checked[partner[i]] = 1;
+		checked_x[i] = 1;
+		checked_x[partner_x[i]] = 1;
 		mtx.unlock();//////
 
-		int partnerIndex = partner[i];
+		int partnerIndex = partner_x[i];
 
-		// Copy the values from old_binary_values to new_binary_values
+		// Copy the values from old_x_bin to new_x_bin
 		for (int j = 0; j < bits; j++)
 		{
-		    new_binary_values[i][j] = old_binary_values[i][j];
-		    new_binary_values[partnerIndex][j] = old_binary_values[partnerIndex][j];
+		    new_x_bin[i][j] = old_x_bin[i][j];
+		    new_x_bin[partnerIndex][j] = old_x_bin[partnerIndex][j];
 		}
 
 		// Perform crossover
-		for (int j = crossing_position[i]; j < bits; j++)
+		for (int j = cross_pos_x[i]; j < bits; j++)
 		{
-		    char temp = new_binary_values[i][j];
-		    new_binary_values[i][j] = new_binary_values[partnerIndex][j];
-		    new_binary_values[partnerIndex][j] = temp;
+		    char temp = new_x_bin[i][j];
+		    new_x_bin[i][j] = new_x_bin[partnerIndex][j];
+		    new_x_bin[partnerIndex][j] = temp;
 		}
 	}
 
@@ -226,8 +226,8 @@ struct generation_node
     {
         int next_index = 0;
         for (int i = 0; i < t; i++) 
-            for (int j = 0; j < actual[i]; j++) 
-                next_population[next_index++] = population[i];    
+            for (int j = 0; j < actual_x[i]; j++) 
+                next_population_x[next_index++] = x[i];    
     }
 
     void adjust_actual()
@@ -235,7 +235,7 @@ struct generation_node
         double current_sum = 0.0;
 
         for (int i = 0; i < t; i++)
-            current_sum += actual[i];
+            current_sum += actual_x[i];
 
         if (current_sum == t)
             return; // No es necesario ajustar nada
@@ -245,9 +245,9 @@ struct generation_node
             // Si la suma es menor que t, aumentar los valores de actual de las mejores candidatas
             for (int i = 0; i < t && current_sum < t; i++)
             {
-                if (actual[i] == 0)
+                if (actual_x[i] == 0)
                 {
-                    actual[i] = 1;
+                    actual_x[i] = 1;
                     current_sum++;
                 }
             }
@@ -257,9 +257,9 @@ struct generation_node
             // Si la suma es mayor que t, disminuir los valores de actual de las peores candidatas
             for (int i = t - 1; i >= 0 && current_sum > t; i--)
             {
-                if (actual[i] == 1)
+                if (actual_x[i] == 1)
                 {
-                    actual[i] = 0;
+                    actual_x[i] = 0;
                     current_sum--;
                 }
             }
@@ -276,13 +276,15 @@ struct queue_of_life
 		generations.push_back(generation_node());
 
 		for (int i = 1; i < gens; i++)
-		    generations.push_back(generation_node(generations[i - 1].next_population));
+		    generations.push_back(generation_node(generations[i - 1].next_population_x));
 	}
 };
 
 
 int main()
 {
+	srand(static_cast<unsigned>(time(nullptr)));
+	
     queue_of_life queue(gens);
 
     for (int i = 0; i < gens; i++)
