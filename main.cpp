@@ -9,14 +9,14 @@
 
 using namespace std;
 
-const int t = 6; //par
+const int t = 10; //par
 const int gens = 100;
 
-const int xbits = 3;
-const int ybits = 4;
+const int xbits = 6;
+const int ybits = 8;
 
-const int xlimit = 8;
-const int ylimit = 16;
+const int xlimit = pow(2,xbits);
+const int ylimit = pow(2,ybits);
 
 #include "generation.h"
 #include "life.h"
@@ -24,11 +24,15 @@ const int ylimit = 16;
 int main()
 {
     srand(time(0));
-    generation gen;
-    gen.print();
+    life a(gens);
 
-    generation gen2;
-    gen2.print();
+    for (int i = 0; i < gens; i++)
+    {
+        cout << "Generation " << i + 1 << ":\n";
+        a.generations[i].print();
+        cout << "\n";
+    }
+
     return 0;
 }
 
