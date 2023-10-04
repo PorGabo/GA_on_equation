@@ -29,19 +29,15 @@ public:
     }
 
     void draw() {
-        // Aumentar el tamaño de los puntos
         glPointSize(5.0);
 
-        // Margen alrededor del gráfico
         float margin = 50.0f;
 
-        // Ajustar el espacio de coordenadas para incluir el margen
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
         gluOrtho2D(-margin, windowWidth + margin, -margin, windowHeight + margin);
 
-        // Dibujar ejes
-        glColor3f(0.0, 0.0, 0.0); // Color negro para los ejes
+        glColor3f(0.0, 0.0, 0.0);
         glBegin(GL_LINES);
         // Eje X
         glVertex2f(0, 0);
@@ -55,12 +51,12 @@ public:
         void *font = GLUT_BITMAP_HELVETICA_12;
         const char *xLabel = "Generations";
         const char *yLabel = "f(a, b)";
-        glColor3f(0.0, 0.0, 0.0); // Color negro para el texto
-        glRasterPos2f(windowWidth / 2, -margin / 1.5); // Posición para la etiqueta del eje X
+        glColor3f(0.0, 0.0, 0.0);
+        glRasterPos2f(windowWidth / 2, -margin / 1.5);
         for (int i = 0; xLabel[i] != '\0'; i++) {
             glutBitmapCharacter(font, xLabel[i]);
         }
-        glRasterPos2f(-margin / 1.5, windowHeight / 2); // Posición para la etiqueta del eje Y
+        glRasterPos2f(-margin / 1.5, windowHeight / 2);
         for (int i = 0; yLabel[i] != '\0'; i++) {
             glutBitmapCharacter(font, yLabel[i]);
         }
