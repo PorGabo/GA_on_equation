@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <vector>
 #include <random>
@@ -6,6 +5,7 @@
 #include <ctime>
 #include <algorithm>
 #include <thread>
+#include <GL/freeglut.h>
 
 using namespace std;
 
@@ -20,6 +20,7 @@ const int ylimit = pow(2,ybits);
 
 #include "generation.h"
 #include "life.h"
+#include "visualizer.h"
 
 int main()
 {
@@ -33,12 +34,8 @@ int main()
         cout << "\n";
     }
 
+    GeneticVisualizer visualizer(a.generations);
+    visualizer.run();
+
     return 0;
 }
-
-
-
-
-
-
-
