@@ -152,7 +152,7 @@ struct generation
     void adjust_actual()
     {
         double current_sum = 0.0;
- 
+
         for (int i = 0; i < t; i++)
             current_sum += actual[i];
 
@@ -161,29 +161,58 @@ struct generation
 
         if (current_sum < t)
         {
-            // Si la suma es menor que t, aumentar los valores de actual de las mejores candidatas
-            for (int i = 0; i < t && current_sum < t; i++)
+            // Si la suma es menor que t, ajustar los valores de actual basados en las diferencias de la parte decimal
+            while (current_sum < t)
             {
-                if (actual[i] == 0)
+                double max_diff = -1.0; // Almacena la mayor diferencia decimal
+                int index_to_increase = -1; // Almacena el índice para aumentar
+
+                // Buscar la mayor diferencia decimal
+                for (int i = 0; i < t; i++)
                 {
-                    actual[i] = 1;
-                    current_sum++;
+                    double diff = spected[i] - static_cast<int>(actual[i]);
+                    if (diff > max_diff)
+                    {
+                        max_diff = diff;
+                        index_to_increase = i;
+                    }
+                }
+
+                if (index_to_increase != -1)
+                {
+                    actual[index_to_increase] += 1;
+                    current_sum += 1;
                 }
             }
         }
         else
         {
-            // Si la suma es mayor que t, disminuir los valores de actual de las peores candidatas
-            for (int i = t - 1; i >= 0 && current_sum > t; i--)
+            // Si la suma es mayor que t, ajustar los valores de actual basados en las diferencias de la parte decimal
+            while (current_sum > t)
             {
-                if (actual[i] == 1)
+                double min_diff = 1.0; // Almacena la menor diferencia decimal
+                int index_to_decrease = -1; // Almacena el índice para disminuir
+
+                // Buscar la menor diferencia decimal
+                for (int i = 0; i < t; i++)
                 {
-                    actual[i] = 0;
-                    current_sum--;
+                    double diff = spected[i] - static_cast<int>(actual[i]);
+                    if (diff < min_diff)
+                    {
+                        min_diff = diff;
+                        index_to_decrease = i;
+                    }
+                }
+
+                if (index_to_decrease != -1)
+                {
+                    actual[index_to_decrease] -= 1;
+                    current_sum -= 1;
                 }
             }
         }
     }
+
 
     void calculate_next_population()
     {
